@@ -33,8 +33,8 @@ fn get_display_paths() -> Result<Vec<DISPLAYCONFIG_PATH_INFO>, Box<dyn std::erro
 
         let result =
             GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &mut path_count, &mut mode_count);
-        if result != ERROR_SUCCESS.0 {
-            return Err(format!("GetDisplayConfigBufferSizes failed: {}", result).into());
+        if result != ERROR_SUCCESS {
+            return Err(format!("GetDisplayConfigBufferSizes failed: {:?}", result).into());
         }
 
         let mut paths: Vec<DISPLAYCONFIG_PATH_INFO> = vec![mem::zeroed(); path_count as usize];
@@ -48,8 +48,8 @@ fn get_display_paths() -> Result<Vec<DISPLAYCONFIG_PATH_INFO>, Box<dyn std::erro
             modes.as_mut_ptr(),
             Some(ptr::null_mut()),
         );
-        if result != ERROR_SUCCESS.0 {
-            return Err(format!("QueryDisplayConfig failed: {}", result).into());
+        if result != ERROR_SUCCESS {
+            return Err(format!("QueryDisplayConfig failed: {:?}", result).into());
         }
 
         paths.truncate(path_count as usize);
@@ -72,7 +72,7 @@ fn get_hdr_status() -> Result<bool, Box<dyn std::error::Error>> {
             color_info.header.id = path.targetInfo.id;
 
             let result = DisplayConfigGetDeviceInfo(&mut color_info.header);
-            if result == ERROR_SUCCESS.0 {
+            if result == 0 {
                 // Bit 0: advancedColorSupported
                 // Bit 1: advancedColorEnabled
                 let advanced_color_enabled = (color_info.value & 0x2) != 0;
@@ -102,7 +102,7 @@ fn set_hdr(enable: bool) -> Result<(), Box<dyn std::error::Error>> {
             color_info.header.id = path.targetInfo.id;
 
             let result = DisplayConfigGetDeviceInfo(&mut color_info.header);
-            if result != ERROR_SUCCESS.0 {
+            if result != 0 {
                 continue;
             }
 
@@ -123,7 +123,7 @@ fn set_hdr(enable: bool) -> Result<(), Box<dyn std::error::Error>> {
             set_state.value = if enable { 1 } else { 0 };
 
             let result = DisplayConfigSetDeviceInfo(&set_state.header);
-            if result == ERROR_SUCCESS.0 {
+            if result == 0 {
                 any_success = true;
             }
         }
